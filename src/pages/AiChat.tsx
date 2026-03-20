@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2 } from "lucide-react";
 import logo from "@/assets/devcore-logo.png";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -34,6 +35,12 @@ const SYSTEM_CONTEXT = `أنت مساعد DevCore الذكي.
 - إذا سُئلت عن شيء خارج نطاق خدمات DevCore، أخبر المستخدم بلطف أن هذا خارج نطاق المعلومات المتاحة لديك.
 - شجّع المستخدم على التواصل عند الرغبة في البدء أو طلب عرض سعر.`;
 
+const QUICK_QUESTIONS = [
+  "ما خدماتكم؟",
+  "كم سعر الموقع؟",
+  "كيف أتعاون معكم؟",
+];
+
 const AiChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -53,38 +60,43 @@ const AiChat = () => {
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-    const userMsg: Message = { role: "user", content: input.trim() };
+  const sendMessage = async (text?: string) => {
+    const msgText = text || input;
+    if (!msgText.trim() || isLoading) return;
+    const userMsg: Message = { role: "user", content: msgText.trim() };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "gpt-4o-mini",
           messages: [
             { role: "system", content: SYSTEM_CONTEXT },
             ...newMessages,
           ],
+          max_tokens: 500,
         }),
       });
 
-      if (!res.ok) throw new Error("API error");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || "API error");
+      }
       const data = await res.json();
       const reply = data.choices?.[0]?.message?.content || "عذرًا، حدث خطأ. حاول مرة أخرى.";
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-    } catch {
+    } catch (e: any) {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "عذرًا، حدث خطأ في الاتصال. تأكد من مفتاح API وحاول مرة أخرى." },
+        { role: "assistant", content: `عذرًا، حدث خطأ: ${e.message || "تأكد من مفتاح API وحاول مرة أخرى."}` },
       ]);
     } finally {
       setIsLoading(false);
@@ -96,21 +108,21 @@ const AiChat = () => {
       {/* Header */}
       <header className="gradient-bg p-4 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="DevCore" className="h-10 w-auto" />
+          <img src={logo} alt="DevCore" className="h-9 w-auto" />
           <div>
-            <h1 className="text-white font-heading font-bold text-lg">مساعد DevCore الذكي</h1>
-            <p className="text-white/70 text-xs">مدعوم بالذكاء الاصطناعي</p>
+            <h1 className="text-white font-heading font-bold text-base md:text-lg">مساعد DevCore الذكي</h1>
+            <p className="text-white/70 text-xs">مدعوم بـ GPT-4o-mini</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <button
             onClick={() => setShowKeyInput(!showKeyInput)}
             className="text-white/70 hover:text-white text-xs underline"
           >
-            {showKeyInput ? "إخفاء" : "تغيير API Key"}
+            {showKeyInput ? "إخفاء" : "API Key"}
           </button>
           <a href="/" className="text-white/80 hover:text-white text-sm font-medium">
-            الموقع الرئيسي
+            الموقع
           </a>
         </div>
       </header>
@@ -123,7 +135,8 @@ const AiChat = () => {
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="أدخل مفتاح OpenRouter API..."
+              onKeyDown={(e) => e.key === "Enter" && saveKey()}
+              placeholder="أدخل مفتاح OpenAI API..."
               className="flex-1 bg-card border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30"
             />
             <button onClick={saveKey} className="gradient-bg text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">
@@ -137,25 +150,44 @@ const AiChat = () => {
       <div className="flex-1 overflow-y-auto p-4">
         <div className="container mx-auto max-w-2xl space-y-4">
           {messages.length === 0 && (
-            <div className="text-center py-20">
+            <div className="text-center py-16 md:py-20">
               <Bot className="mx-auto text-primary mb-4" size={48} />
               <h2 className="font-heading text-xl font-bold text-foreground mb-2">مرحبًا بك في مساعد DevCore</h2>
-              <p className="text-muted-foreground">اسألني عن خدماتنا، الأسعار، أو أي شيء متعلق بعملنا</p>
+              <p className="text-muted-foreground mb-6">اسألني عن خدماتنا، الأسعار، أو أي شيء متعلق بعملنا</p>
+              {apiKey && (
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {QUICK_QUESTIONS.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => sendMessage(q)}
+                      className="text-sm bg-secondary hover:bg-primary hover:text-white text-secondary-foreground px-4 py-2 rounded-full transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           {messages.map((m, i) => (
             <div key={i} className={`flex gap-3 ${m.role === "user" ? "flex-row" : "flex-row-reverse"}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1 ${
                 m.role === "user" ? "bg-primary/10" : "gradient-bg"
               }`}>
                 {m.role === "user" ? <User size={16} className="text-primary" /> : <Bot size={16} className="text-white" />}
               </div>
-              <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${
+              <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
                 m.role === "user"
                   ? "bg-primary text-white rounded-tr-sm"
                   : "bg-card border border-border text-foreground rounded-tl-sm"
               }`}>
-                {m.content}
+                {m.role === "assistant" ? (
+                  <div className="prose prose-sm max-w-none text-foreground [&_p]:mb-1 [&_ul]:my-1">
+                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <span className="whitespace-pre-wrap">{m.content}</span>
+                )}
               </div>
             </div>
           ))}
@@ -180,12 +212,12 @@ const AiChat = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-            placeholder="اكتب سؤالك هنا..."
+            placeholder={apiKey ? "اكتب سؤالك هنا..." : "أدخل API Key أولاً..."}
             disabled={isLoading || !apiKey}
             className="flex-1 bg-secondary rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/30 transition-shadow disabled:opacity-50"
           />
           <button
-            onClick={sendMessage}
+            onClick={() => sendMessage()}
             disabled={isLoading || !apiKey || !input.trim()}
             className="gradient-bg text-white p-3 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
           >

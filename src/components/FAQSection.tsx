@@ -27,10 +27,10 @@ const FAQSection = () => {
   }, []);
 
   return (
-    <section id="faq" className="py-20 bg-secondary/50">
+    <section id="faq" className="py-20 bg-secondary/30">
       <div ref={ref} className="container mx-auto px-4 max-w-2xl">
-        <h2 className="font-heading text-3xl md:text-4xl font-bold text-center mb-12">
-          ❓ <span className="gradient-text">الأسئلة الشائعة</span>
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-center mb-12 text-foreground">
+          <span className="gradient-text">الأسئلة الشائعة</span>
         </h2>
         <Accordion type="single" collapsible className="space-y-3">
           {faqs.map((f, i) => (

@@ -18,10 +18,10 @@ const AboutSection = () => {
   }, []);
 
   return (
-    <section id="about" className="py-20 bg-secondary/50">
+    <section id="about" className="py-20 bg-secondary/30">
       <div ref={ref} className="container mx-auto px-4 max-w-3xl text-center">
-        <h2 className="font-heading text-3xl md:text-4xl font-bold mb-6">
-          👥 <span className="gradient-text">من نحن</span>
+        <h2 className="font-heading text-3xl md:text-4xl font-bold mb-6 text-foreground">
+          <span className="gradient-text">من نحن</span>
         </h2>
         <p className="text-foreground/80 text-lg leading-relaxed mb-6">
           نحن فريق DevCore، فريق برمجي متخصص في تطوير المواقع والتطبيقات والأنظمة الرقمية.
