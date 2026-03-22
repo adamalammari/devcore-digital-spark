@@ -105,7 +105,7 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden bg-card/98 backdrop-blur-lg border-t border-border/50 animate-in slide-in-from-top-2">
+        <div className="md:hidden bg-card border-t border-border/50 animate-in slide-in-from-top-2">
           <div className="container mx-auto px-4 py-3 flex flex-col gap-1">
             {navLinks.map((l) => (
               <button
