@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import logo from "@/assets/devcore-logo.png";
 import { Menu, X, MessageSquare } from "lucide-react";
 
 const navLinks = [
   { label: "الرئيسية", href: "#home" },
   { label: "الخدمات", href: "#services" },
   { label: "الباقات", href: "#pricing" },
+  { label: "آراء العملاء", href: "#testimonials" },
   { label: "من نحن", href: "#about" },
-  { label: "التعاون", href: "#collab" },
   { label: "الأسئلة", href: "#faq" },
 ];
 
@@ -21,7 +20,6 @@ const Navbar = () => {
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 50);
-      // Track active section
       for (const link of navLinks) {
         const el = document.querySelector(link.href);
         if (el) {
@@ -55,12 +53,9 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <img src={logo} alt="DevCore" className="h-9 w-auto" />
-          <span className={`font-heading font-bold text-lg hidden sm:block ${scrolled ? "text-foreground" : "text-white"}`}>
-            DevCore
-          </span>
-        </div>
+        <span className={`font-heading font-bold text-xl ${scrolled ? "text-foreground" : "text-white"}`}>
+          DevCore
+        </span>
 
         {/* Desktop */}
         <div className="hidden md:flex items-center gap-1">
