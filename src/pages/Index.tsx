@@ -5,7 +5,7 @@ import FeaturesSection from "@/components/FeaturesSection";
 import ServicesSection from "@/components/ServicesSection";
 import PricingSection from "@/components/PricingSection";
 import AboutSection from "@/components/AboutSection";
-import CollabSection from "@/components/CollabSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
 import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 import Chatbot, { ChatbotButton } from "@/components/Chatbot";
@@ -20,8 +20,8 @@ const Index = () => {
       <FeaturesSection />
       <ServicesSection />
       <PricingSection />
+      <TestimonialsSection />
       <AboutSection />
-      <CollabSection />
       <FAQSection />
       <Footer />
       
